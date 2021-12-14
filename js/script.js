@@ -1,6 +1,8 @@
 // This is targeting the div with the class overview
 const profileOverview = document.querySelector(".overview");
 const repoList = document.querySelector(".repo-list")
+const repoSection = document.querySelector(".repos")
+const repoDataSection = document.querySelector(".repo-data")
 const username = "bosunabujade";
 
 const getProfile = async function() {
@@ -34,10 +36,46 @@ const getRepoList = async function() {
 }
 
 const displayRepoInfo = function(repos) {
-    for (let repo of repos) {
-        let li = document.createElement("li");
+    for (const repo of repos) {
+        const li = document.createElement("li");
         li.classList.add("repo");
         li.innerHTML = `<h3> ${repo.name} </h3>`
         repoList.append(li)
     }
+}
+repoList.addEventListener("click", function(e) {
+    if (e.target.matches("h3")) {
+        const repoName = e.target.innerText;
+        specificRepoData(repoName)
+    }
+})
+
+const specificRepoData = async function(repoName) {
+    const fetchRepoInfo = await fetch(`https://api.github.com/repos/${username}/${repoName}`)
+    const repoInfo = await fetchRepoInfo.json()
+    console.log(repoInfo)
+
+    const fetchLanguages = await fetch(repoInfo.languages_url)
+    const languagesData = await fetchLanguages.json()
+
+    const languages = []
+    for (const language in languagesData) {
+        languages.push(language)
+    }
+
+    displaySpecificRepoData(repoInfo, languages)
+}
+
+const displaySpecificRepoData = function(repoInfo, languages) {
+    repoDataSection.innerHTML = "";
+    repoDataSection.classList.remove("hide")
+    repoSection.classList.add("hide")
+    let div = document.createElement("div"); 
+    div.innerHTML = 
+    `<h3>Name: ${repoInfo.name}</h3>
+        <p>Description: ${repoInfo.description}</p>
+        <p>Default Branch: ${repoInfo.default_branch}</p>
+        <p>Languages: ${languages.join(", ")}</p>
+        <a class="visit" href="${repoInfo.html_url}" target="_blank" rel="noreferrer noopener">View Repo on GitHub!</a>`
+    repoDataSection.append(div);    
 }
